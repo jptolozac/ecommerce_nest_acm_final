@@ -11,6 +11,6 @@ import { RolController } from './controladores/rol/rol.controller';
     imports: [TypeOrmModule.forFeature([ Usuario, Rol ])],
     controllers: [UsuarioController, RolController],
     providers: [UsuarioService, RolService],
-    // exports: [UsuarioService, RolService]
+    exports: [UsuarioService, RolService]
 })
 export class UsuarioModule { }

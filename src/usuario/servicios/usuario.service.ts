@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Usuario } from "../entidades/usuario.entity";
@@ -51,7 +51,7 @@ export class UsuarioService {
                 return {
                     statusCode: 201,
                     message: 'Usuario creado',
-                    rseponse: await this.usuarioRepo.save(nuevoUsuario)
+                    response: await this.usuarioRepo.save(nuevoUsuario)
                 }
             }
         } catch (error) {

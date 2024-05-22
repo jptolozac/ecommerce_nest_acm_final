@@ -1,12 +1,9 @@
 import {
     Column,
     Entity,
-    JoinColumn,
-    ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Exclude } from 'class-transformer';
 import { Usuario } from './usuario.entity';
 import { ApiProperty } from '@nestjs/swagger';
 

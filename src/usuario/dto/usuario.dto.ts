@@ -1,4 +1,4 @@
-import { IsBoolean, IsDate, IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 import { PartialType } from '@nestjs/swagger';
 import { Transform, TransformFnParams } from 'class-transformer';
 // import { Rol } from '../entidades/rol.entity';
