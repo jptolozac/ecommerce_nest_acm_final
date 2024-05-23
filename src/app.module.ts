@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { enviroments } from './enviroments';
 import { AuthModule } from './auth/auth.module';
 import { CategoriaModule } from './categoria/categoria.module';
+import { ProductoModule } from './producto/producto.module';
 import config from './config';
 
 @Module({
@@ -16,7 +17,7 @@ import config from './config';
       load: [config, ],
       isGlobal: true
     }),
-    UsuarioModule, DatabaseModule, AuthModule, CategoriaModule],
+    UsuarioModule, DatabaseModule, AuthModule, CategoriaModule, ProductoModule],
   controllers: [AppController],
   providers: [AppService],
 })

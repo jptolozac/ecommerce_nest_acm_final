@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Usuario } from "../entidades/usuario.entity";
 import { ActualizarUsuarioDto, CrearUsuarioDto } from "../dto/usuario.dto";
+import * as bcrypt from 'bcrypt'
 
 @Injectable()
 export class UsuarioService {
@@ -74,7 +75,8 @@ export class UsuarioService {
         try {
             const user = await this.usuarioRepo.findOne({ where: { cedula: cedula } });
             if (user) {
-                await this.usuarioRepo.merge(user, data);
+                const actualUser = this.usuarioRepo.merge(user, data);
+                actualUser.password = await bcrypt.hash(actualUser.password, 10)
                 return {
                     statusCode: 201,
                     message: 'El usuario ha sido actualizado',

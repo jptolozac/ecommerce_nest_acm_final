@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ActualizarUsuarioDto, CrearUsuarioDto } from 'src/usuario/dto/usuario.dto';
 import { Usuario } from 'src/usuario/entidades/usuario.entity';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt'
 
 @Injectable()
 export class AuthService {
@@ -19,14 +20,15 @@ export class AuthService {
 
     async login(correo: string, password: string) {
         try {
-            const user = await this.usuarioRepo.find({ where: [{ correo: correo, password: password }], relations: ["fk_rol_user"] });
-            if (user.length == 0) {
+            const user = await this.usuarioRepo.findOne({ where: [{ correo: correo }], relations: ["fk_rol_user"] });
+            const isPassword = await bcrypt.compare(password, user.password)
+            if (!user || !isPassword) {
                 return {
                     statusCode: 401,
                     message: "Datos incorrectos"
                 }
             }
-            const payload = { username: user[0].correo, sub: user[0].cedula, roles: user[0].fk_rol_user.nombre };
+            const payload = { username: user.correo, sub: user.cedula, roles: user.fk_rol_user.nombre };
             return {
                 statusCode: 200,
                 user: user,
@@ -51,7 +53,8 @@ export class AuthService {
                     message: 'El usuario ya esta creado'
                 }
             } else {
-                const nuevoUsuario = this.usuarioRepo.create(data);
+                const nuevoUsuario =  this.usuarioRepo.create(data);
+                nuevoUsuario.password = await bcrypt.hash(nuevoUsuario.password, 10)
                 return {
                     statusCode: 201,
                     message: 'Usuario creado',
@@ -59,6 +62,7 @@ export class AuthService {
                 }
             }
         } catch (error) {
+            console.log(error);
             return {
                 statusCode: 500,
                 message: 'Error interno'
