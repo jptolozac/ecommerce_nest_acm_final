@@ -8,6 +8,7 @@ import { enviroments } from './enviroments';
 import { AuthModule } from './auth/auth.module';
 import { CategoriaModule } from './categoria/categoria.module';
 import { ProductoModule } from './producto/producto.module';
+import { PedidoModule } from './pedido/pedido.module';
 import config from './config';
 
 @Module({
@@ -17,7 +18,7 @@ import config from './config';
       load: [config, ],
       isGlobal: true
     }),
-    UsuarioModule, DatabaseModule, AuthModule, CategoriaModule, ProductoModule],
+    UsuarioModule, DatabaseModule, AuthModule, CategoriaModule, ProductoModule, PedidoModule],
   controllers: [AppController],
   providers: [AppService],
 })
