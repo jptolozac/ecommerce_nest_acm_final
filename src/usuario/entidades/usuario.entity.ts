@@ -4,9 +4,11 @@ import {
     Entity,
     JoinColumn,
     ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn
 } from 'typeorm';
 import { Rol } from './rol.entity';
+import { Pedido } from 'src/pedido/entidades/pedido.entity';
 
 @Entity()
 export class Usuario {
@@ -43,4 +45,7 @@ export class Usuario {
     })
     @JoinColumn({ name: "fk_rol_usuario"})
     fk_rol_user: Rol;
+    
+    @OneToMany(() => Pedido, (pedido) => pedido.usuario)
+    pedidos: Pedido[]
 }

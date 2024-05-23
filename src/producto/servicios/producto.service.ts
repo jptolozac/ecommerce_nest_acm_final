@@ -21,7 +21,6 @@ export class ProductoService {
         const producto = await this.productoRepo.findOne({ where: [{ id }]})
         if(!producto) return errorResponse("Producto no encontrado", 400)
         return successResponse(producto)
-        Producto
     }
 
     async agregar(data: CrearProductoDto){
