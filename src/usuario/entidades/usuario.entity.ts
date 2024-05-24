@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Rol } from './rol.entity';
 import { Pedido } from 'src/pedido/entidades/pedido.entity';
+import { Carrito } from 'src/carrito/entidades/carrito.entity';
 
 @Entity()
 export class Usuario {
@@ -48,4 +49,7 @@ export class Usuario {
     
     @OneToMany(() => Pedido, (pedido) => pedido.usuario)
     pedidos: Pedido[]
+
+    @OneToMany(() => Carrito, (carrito) => carrito.usuario)
+    carritos: Carrito[]
 }

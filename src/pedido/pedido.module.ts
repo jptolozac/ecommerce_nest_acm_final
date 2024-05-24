@@ -8,6 +8,7 @@ import { UsuarioModule } from 'src/usuario/usuario.module';
 @Module({
   imports: [TypeOrmModule.forFeature([Pedido]), UsuarioModule],
   controllers: [PedidoController],
-  providers: [PedidoService]
+  providers: [PedidoService],
+  exports: [PedidoService]
 })
 export class PedidoModule {}

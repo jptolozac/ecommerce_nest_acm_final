@@ -25,12 +25,18 @@ export class PedidoService {
         return successResponse(pedido)
     }
 
+    async consultarPorUsuario(usuarioId: number){
+        const pedido = await this.pedidoRepo.findOne({ where: { usuario: [{ id: usuarioId }] } })
+        if(!pedido) return errorResponse("Pedido no encontrado", 400)
+            return successResponse(pedido)
+    }
+
     async agregar(data: CrearPedidoDto){
         try {
             const {cedula_usuario, ...pedido} = data;
             const usuario = await this.usuarioService.consultarUsuario(cedula_usuario)
             if(!usuario)
-                return errorResponse("Usuario no encontrado", 400)
+                return errorResponse("Pedido no encontrado", 400)
 
             const nuevoProducto = this.pedidoRepo.create({
                 ...pedido,
