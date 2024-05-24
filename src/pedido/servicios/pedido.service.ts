@@ -1,17 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Pedido } from '../entidades/pedido.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { errorResponse, successResponse } from 'src/responses/response';
 import { ActualizarPedidoDto, CrearPedidoDto } from '../dto/pedido.dto';
 import { UsuarioService } from 'src/usuario/servicios/usuario.service';
+import { CarritoProductoService } from 'src/carrito/servicios/carrito-producto.service';
 
 @Injectable()
 export class PedidoService {
     constructor(
         @InjectRepository(Pedido)
         private pedidoRepo: Repository<Pedido>,
-        private usuarioService: UsuarioService
+        private usuarioService: UsuarioService,
+        @Inject(forwardRef(() => CarritoProductoService))
+        private carritoProductoService: CarritoProductoService
     ) {}
 
     async consultarTodos(){
@@ -26,9 +29,23 @@ export class PedidoService {
     }
 
     async consultarPorUsuario(usuarioId: number){
-        const pedido = await this.pedidoRepo.findOne({ where: { usuario: [{ id: usuarioId }] } })
+        const pedido = await this.pedidoRepo.findOne({ where: [{ usuario: [{ id: usuarioId }], estado: "pendiente" }] })
         if(!pedido) return errorResponse("Pedido no encontrado", 400)
-            return successResponse(pedido)
+        return successResponse(pedido)
+    }
+
+    async realizarPedido(cedula_usuario: string){
+        let pedido = await this.pedidoRepo.findOne({ where: [{ usuario: [{ cedula: cedula_usuario }], estado: "pendiente" }], relations: ["usuario", "carrito"] })
+        if(!pedido) 
+            return errorResponse("No hay pedidos activos para el usuario", 400)
+        pedido.estado = "completado"
+        pedido = await this.pedidoRepo.save(pedido)
+        const carritoProductos = await this.carritoProductoService.consultarPorCarrito(pedido.carrito.id)
+        
+        return successResponse({
+            ...pedido,
+            productos: carritoProductos
+        })
     }
 
     async agregar(data: CrearPedidoDto){
@@ -54,7 +71,7 @@ export class PedidoService {
         try {
             let pedido = await this.pedidoRepo.findOne({ where: [{ id }] })
             if(!pedido) return errorResponse("Pedido no encontrado", 400)
-            pedido = this.pedidoRepo.merge(pedido, data)
+            pedido = this.pedidoRepo.merge(pedido, {...data, carrito: { id: data.carrito_id }})
 
             return successResponse(await this.pedidoRepo.save(pedido))
         } catch (error) {

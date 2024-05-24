@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { CarritoController } from './controladores/carrito.controller';
 import { CarritoService } from './servicios/carrito.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -10,8 +10,14 @@ import { PedidoModule } from 'src/pedido/pedido.module';
 import { ProductoModule } from 'src/producto/producto.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Carrito, CarritoProducto]), UsuarioModule, PedidoModule, ProductoModule],
+  imports: [
+    TypeOrmModule.forFeature([Carrito, CarritoProducto]), 
+    UsuarioModule, 
+    forwardRef(() => PedidoModule), 
+    ProductoModule
+  ],
   controllers: [CarritoController],
-  providers: [CarritoService, CarritoProductoService]
+  providers: [CarritoService, CarritoProductoService],
+  exports: [CarritoService, CarritoProductoService]
 })
 export class CarritoModule {}

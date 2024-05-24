@@ -1,5 +1,6 @@
+import { Carrito } from "src/carrito/entidades/carrito.entity";
 import { Usuario } from "src/usuario/entidades/usuario.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Pedido {
@@ -18,4 +19,8 @@ export class Pedido {
     @ManyToOne(() => Usuario, (usuario) => usuario.pedidos, { nullable: false })
     @JoinColumn({ name: "usuario_id" })
     usuario: Usuario;
+
+    @OneToOne(() => Carrito)
+    @JoinColumn({ name: "carrito_id" })
+    carrito: Carrito;
 }

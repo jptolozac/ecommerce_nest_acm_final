@@ -4,6 +4,7 @@ import { Roles } from 'src/auth/guards/roles.decorator';
 import { CrearCarritoDto } from '../dto/carrito.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { User } from 'src/auth/guards/user-decorator';
 
 @Controller('carritos')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -23,20 +24,8 @@ export class CarritoController {
     // @Roles('ADMIN')
     @Post('')
     @UsePipes(new ValidationPipe())
-    async crear(@Body() data: CrearCarritoDto){
-        return await this.carritoService.crear(data);
-    }
-
-    @Post('agregarProductos/:id')
-    @UsePipes(new ValidationPipe())
-    async agregar(@Param('id', ParseIntPipe) carritoId, @Body() data: CrearCarritoDto){
-        return await this.carritoService.agregar(carritoId, data);
-    }
-    
-    @Get('realizarPedido/:id')
-    @UsePipes(new ValidationPipe())
-    async realizarPedido(/* @User() user */){
-        // return await this.carritoService.realizarPedido(user);
+    async agregar(@User() user, @Body() data: CrearCarritoDto){
+        return await this.carritoService.agregar(user.userId, data);
     }
 
     // @Roles('ADMIN')

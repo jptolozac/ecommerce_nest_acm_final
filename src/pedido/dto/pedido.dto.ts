@@ -22,6 +22,11 @@ export class CrearPedidoDto {
     @IsNotEmpty()
     @IsString()
     cedula_usuario: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsNumber()
+    carrito_id: number;
 }
 
 export class ActualizarPedidoDto extends PartialType(CrearPedidoDto) {}

@@ -4,6 +4,7 @@ import { Roles } from 'src/auth/guards/roles.decorator';
 import { ActualizarPedidoDto, CrearPedidoDto } from '../dto/pedido.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { User } from 'src/auth/guards/user-decorator';
 
 @Controller('pedidos')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -18,6 +19,14 @@ export class PedidoController {
     @Get(':id')
     async consultar(@Param('id', ParseIntPipe) id: number){
         return await this.pedidoService.consultar(id);
+    }
+
+    @Get('carrito/realizarPedido')
+    @UsePipes(new ValidationPipe())
+    async realizarPedido(@User() user){
+        console.log(user);
+        return await this.pedidoService.realizarPedido(user.userId)
+        // return await this.carritoService.realizarPedido(user);
     }
 
     // @Roles('ADMIN')

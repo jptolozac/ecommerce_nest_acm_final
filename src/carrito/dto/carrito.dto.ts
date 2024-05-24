@@ -1,12 +1,12 @@
 import { ApiProperty, PartialType } from "@nestjs/swagger";
-import { IsArray, IsNotEmpty, IsString } from "class-validator";
+import { IsArray, IsNotEmpty } from "class-validator";
 import { CrearCarritoProductoDto } from "./carritoProducto.dto";
 
 export class CrearCarritoDto {
-    @ApiProperty()
-    @IsNotEmpty()
-    @IsString()
-    cedula_usuario: string;
+    // @ApiProperty()
+    // @IsNotEmpty()
+    // @IsString()
+    // cedula_usuario: string;
 
     @ApiProperty()
     @IsNotEmpty()

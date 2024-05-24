@@ -7,6 +7,7 @@ import { CrearCarritoDto } from '../dto/carrito.dto';
 import { UsuarioService } from 'src/usuario/servicios/usuario.service';
 import { PedidoService } from 'src/pedido/servicios/pedido.service';
 import { CarritoProductoService } from './carrito-producto.service';
+import { Pedido } from 'src/pedido/entidades/pedido.entity';
 
 @Injectable()
 export class CarritoService {
@@ -29,81 +30,61 @@ export class CarritoService {
         return successResponse(carrito)
     }
 
-    async crear(data: CrearCarritoDto) {
+    async agregar(cedula_usuario: string, data: CrearCarritoDto) {
         try {
-            const { cedula_usuario, productos, ...carrito } = data;
+            const { productos, ...carrito } = data;
             const usuario = await this.usuarioService.consultarUsuario(cedula_usuario)
             if (!usuario)
                 return errorResponse("Usuario no encontrado", 400)
 
-            let pedidoActivo = (await this.pedidoService.consultarPorUsuario(usuario.id))
-            console.log(pedidoActivo);
+            let peticionPedidoActivo = (await this.pedidoService.consultarPorUsuario(usuario.id))
+            // console.log(peticionPedidoActivo);
             
             let carritoActivo: Carrito = null
-            if (pedidoActivo.error) {
-                pedidoActivo = await this.pedidoService.agregar({
+            let pedidoActivo: Pedido = null
+            if (peticionPedidoActivo.error) {
+                peticionPedidoActivo = await this.pedidoService.agregar({
                     cedula_usuario,
                     estado: "pendiente",
                     fecha_creacion: new Date(this.currentDate()),
-                    total: 0
+                    total: 0,
+                    carrito_id: null
                 })
 
-                if (pedidoActivo.error)
+                if (peticionPedidoActivo.error)
                     throw new Error("Error al crear el pedido")
 
+                pedidoActivo = peticionPedidoActivo.response
                 const carritoPlantilla = this.carritoRepo.create({
-                    pedido: pedidoActivo.response,
+                    pedido: pedidoActivo,
                     usuario,
                     ...carrito
                 })
                 carritoActivo = await this.carritoRepo.save(carritoPlantilla)
-                carritoActivo.pedido = pedidoActivo.response;
+                carritoActivo.pedido = pedidoActivo;
+                
+                pedidoActivo = (await this.pedidoService.actualizar(pedidoActivo.id, { carrito_id: carritoActivo.id })).response
+                console.log("pedidoActivo: ", pedidoActivo);
+                
             }else{
-                carritoActivo = await this.carritoRepo.findOne({ where: { pedido: [{ id: pedidoActivo.response.id }] } })
+                pedidoActivo = peticionPedidoActivo.response
+                carritoActivo = await this.carritoRepo.findOne({ where: { pedido: [{ id: pedidoActivo.id }] } })
                 if(!carritoActivo) {
                     console.log(carritoActivo);
                     return errorResponse("Error al obtener el carrito")
                 }
             }
-
-            const pedido = pedidoActivo.response
+            const pedido = pedidoActivo
 
             let totalParcial = 0
             for (const producto of productos) {
                 const carritoProducto = await this.carritoProductoService.agregar(producto, carritoActivo)
-                if (carritoProducto.response && typeof carritoProducto.response === 'number')
+                if (!carritoProducto.error && typeof carritoProducto.response === 'number')
                     totalParcial += carritoProducto.response as number
             }
-            pedido.total = totalParcial
-            this.pedidoService.actualizar(pedido.id, pedido)
-
-            return successResponse("Productos añadidos al carrito", 201)
-        } catch (error) {
-            console.log(error);
-            return errorResponse("Error interno")
-        }
-    }
-
-    async agregar(carritoId: number, data: CrearCarritoDto) {
-        try {
-            const { cedula_usuario, productos } = data;
-            const usuario = await this.usuarioService.consultarUsuario(cedula_usuario)
-            if (!usuario)
-                return errorResponse("Usuario no encontrado", 400)
-
-            const carrito = await this.carritoRepo.findOne({ where: { id: carritoId }, relations: ["pedido"] })
-            if (!carrito) return errorResponse("Carrito no encontrado", 400)
-
-            let totalParcial: number = 0
-            for (const producto of productos) {
-                const carritoProducto = await this.carritoProductoService.agregar(producto, carrito)
-                if (carritoProducto.response && typeof carritoProducto.response === 'number')
-                    totalParcial += carritoProducto.response as number
-            }
-
-            const pedido = carrito.pedido
             totalParcial += Number(pedido.total)
             pedido.total = totalParcial
+            
             this.pedidoService.actualizar(pedido.id, pedido)
 
             return successResponse("Productos añadidos al carrito", 201)
@@ -112,6 +93,35 @@ export class CarritoService {
             return errorResponse("Error interno")
         }
     }
+
+    // async agregar(carritoId: number, data: CrearCarritoDto) { // implementado en crear
+    //     try {
+    //         const { cedula_usuario, productos } = data;
+    //         const usuario = await this.usuarioService.consultarUsuario(cedula_usuario)
+    //         if (!usuario)
+    //             return errorResponse("Usuario no encontrado", 400)
+
+    //         const carrito = await this.carritoRepo.findOne({ where: { id: carritoId }, relations: ["pedido"] })
+    //         if (!carrito) return errorResponse("Carrito no encontrado", 400)
+
+    //         let totalParcial: number = 0
+    //         for (const producto of productos) {
+    //             const carritoProducto = await this.carritoProductoService.agregar(producto, carrito)
+    //             if (carritoProducto.response && typeof carritoProducto.response === 'number')
+    //                 totalParcial += carritoProducto.response as number
+    //         }
+
+    //         const pedido = carrito.pedido
+    //         totalParcial += Number(pedido.total)
+    //         pedido.total = totalParcial
+    //         this.pedidoService.actualizar(pedido.id, pedido)
+
+    //         return successResponse("Productos añadidos al carrito", 201)
+    //     } catch (error) {
+    //         console.log(error);
+    //         return errorResponse("Error interno")
+    //     }
+    // }
 
     // async actualizar(id: number, data: ActualizarCarritoDto){
     //     try {

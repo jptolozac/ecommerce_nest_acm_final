@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CarritoProducto } from '../entidades/carritoProducto.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,34 +13,43 @@ export class CarritoProductoService {
     constructor(
         @InjectRepository(CarritoProducto)
         private carritoProductoRepo: Repository<CarritoProducto>,
+        @Inject(forwardRef(() => ProductoService))
         private productoService: ProductoService,
-    ) {}
+    ) { }
 
-    async consultarTodos(){
+    async consultarTodos() {
         const response = await this.carritoProductoRepo.find({ relations: ["usuario"] });
         return successResponse(response)
     }
 
-    async consultar(id: number){
-        const pedido = await this.carritoProductoRepo.findOne({ where: [{ id }], relations: ["usuario"]})
-        if(!pedido) return errorResponse("Pedido no encontrado", 400)
-        return successResponse(pedido)
+    async consultar(id: number) {
+        const carritoProducto = await this.carritoProductoRepo.findOne({ where: [{ id }], relations: ["usuario"] })
+        if (!carritoProducto) return errorResponse("Pedido no encontrado", 400)
+        return successResponse(carritoProducto)
     }
 
-    async agregar(data: CrearCarritoProductoDto, carrito: Carrito){
+    async consultarPorCarrito(carritoId: number) {
+        const productos = await this.carritoProductoRepo.find({ where: [{ carrito: [{ id: carritoId }] }], relations: ["producto"] })
+        return productos;
+    }
+
+    async agregar(data: CrearCarritoProductoDto, carrito: Carrito) {
         try {
-            const { producto_id, cantidad,  ...carritoProducto } = data;
+            const { producto_id, cantidad, ...carritoProducto } = data;
             const getProducto = (await this.productoService.consultar(producto_id))
-            if(getProducto.error) return errorResponse("Producto no encontrado", 400)
+            if (getProducto.error) return errorResponse("Producto no encontrado", 400)
             const producto: Producto = getProducto.response
-            if(!carrito) return errorResponse("Carrito no encontrado")
+            if (!carrito) return errorResponse("Carrito no encontrado")
 
             const nuevoProductoCarrito = this.carritoProductoRepo.create({
                 ...carritoProducto,
                 cantidad,
                 producto,
-                carrito
+                carrito: {
+                    id: carrito.id
+                }
             })
+
             await this.carritoProductoRepo.save(nuevoProductoCarrito)
 
             return successResponse(producto.precio * cantidad);
@@ -51,24 +60,24 @@ export class CarritoProductoService {
         }
     }
 
-    async actualizar(id: number, data: ActualizarCarritoProductoDto){
+    async actualizar(id: number, data: ActualizarCarritoProductoDto) {
         try {
-            let pedido = await this.carritoProductoRepo.findOne({ where: [{ id }] })
-            if(!pedido) return errorResponse("Pedido no encontrado", 400)
-            pedido = this.carritoProductoRepo.merge(pedido, data)
+            let carritoProducto = await this.carritoProductoRepo.findOne({ where: [{ id }] })
+            if (!carritoProducto) return errorResponse("Pedido no encontrado", 400)
+            carritoProducto = this.carritoProductoRepo.merge(carritoProducto, data)
 
-            return successResponse(await this.carritoProductoRepo.save(pedido))
+            return successResponse(await this.carritoProductoRepo.save(carritoProducto))
         } catch (error) {
             // console.log(error);
             return errorResponse("Error interno")
         }
     }
 
-    async eliminar(id: number){
+    async eliminar(id: number) {
         try {
-            const pedido = await this.carritoProductoRepo.findOne({ where: [{ id }] })
-            if(!pedido) return errorResponse("Pedido no encontrado", 400)
-            await this.carritoProductoRepo.delete(pedido)
+            const carritoProducto = await this.carritoProductoRepo.findOne({ where: [{ id }] })
+            if (!carritoProducto) return errorResponse("Pedido no encontrado", 400)
+            await this.carritoProductoRepo.delete(carritoProducto)
 
             return successResponse("Pedido eliminado", 202)
         } catch (error) {
