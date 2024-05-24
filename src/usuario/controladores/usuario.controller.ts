@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Put, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { UsuarioService } from '../servicios/usuario.service';
 import { ActualizarUsuarioDto } from '../dto/usuario.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/guards/roles.decorator';
@@ -12,11 +12,11 @@ import { Roles } from 'src/auth/guards/roles.decorator';
 export class UsuarioController {
     constructor(private usuarioService: UsuarioService) { }
 
-    @Get('prueba')
-    @Roles('ADMIN')
-    prueba(): string {
-        return this.usuarioService.prueba()
-    }
+    // @Get('prueba')
+    // @Roles('ADMIN')
+    // prueba(): string {
+    //     return this.usuarioService.prueba()
+    // }
 
     // @UsePipes(new ValidationPipe())
     // @ApiOperation({ summary: 'Crear un nuevo usuario' })
@@ -28,6 +28,8 @@ export class UsuarioController {
     //     return this.usuarioService.login(payload.correo, payload.password);
     // }
 
+    @ApiOperation({ summary: 'Admin' })
+    @ApiResponse({ status: 200, description: 'Usuarios en un array' })
     @Get('consultarUsuarios')
     @Roles('ADMIN')
     async findAll() {
@@ -36,6 +38,8 @@ export class UsuarioController {
 
     // TODO: Que la transacción se pueda hacer solo si la cédula es la misma que se almacena en el token
     // @Roles('ADMIN')
+    @ApiResponse({ status: 200, description: 'Usuario según la cédula recibida' })
+    @ApiResponse({ status: 400, description: 'Cédula inválida' })
     @Get('consultarUsuario/:cedula')
     async findOne(@Param('cedula', ParseIntPipe) cedula: string) {
         return await this.usuarioService.consultarUsuario(cedula);
@@ -53,12 +57,17 @@ export class UsuarioController {
 
     // TODO: Que la transacción se pueda hacer solo si la cédula es la misma que se almacena en el token
     // @Roles('ADMIN')
+    @ApiResponse({ status: 200, description: 'Usuario según la cédula recibida con los datos actualizados' })
+    @ApiResponse({ status: 400, description: 'Datos de usuario inválidos' })
     @Put('actualizarUsuario/:cedula')
     @UsePipes(new ValidationPipe())
     async actualizarUsuario(@Param('cedula', ParseIntPipe) cedula: string, @Body() data: ActualizarUsuarioDto) {
         return await this.usuarioService.actualizarUsuario(cedula, data);
     }
 
+    @ApiOperation({ summary: 'Admin' })
+    @ApiResponse({ status: 200, description: 'Usuario eliminado' })
+    @ApiResponse({ status: 400, description: 'Cédula inválida' })
     @Roles('ADMIN')
     @Delete('eliminarUsuario/:cedula')
     @UsePipes(new ValidationPipe())

@@ -24,9 +24,9 @@ export class CarritoService {
         return successResponse(response)
     }
 
-    async consultar(id: number) {
-        const carrito = await this.carritoRepo.findOne({ where: [{ id }], relations: ["usuario", "carritoProductos", "carritoProductos.producto", "pedido"] })
-        if (!carrito) return errorResponse("Carrito no encontrado", 400)
+    async consultar(cedula_usuario: string) {
+        const carrito = await this.carritoRepo.findOne({ where: { usuario: [{ cedula: cedula_usuario }], pedido: [{ estado: "pendiente" }] }, relations: ["usuario", "carritoProductos", "carritoProductos.producto", "pedido"] })
+        if (!carrito) return errorResponse("No hay carritos activos", 400)
         return successResponse(carrito)
     }
 

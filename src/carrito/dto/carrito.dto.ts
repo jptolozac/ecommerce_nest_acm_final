@@ -8,7 +8,9 @@ export class CrearCarritoDto {
     // @IsString()
     // cedula_usuario: string;
 
-    @ApiProperty()
+    @ApiProperty({
+        type: [CrearCarritoProductoDto]
+    })
     @IsNotEmpty()
     @IsArray()
     productos: CrearCarritoProductoDto[]
